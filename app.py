@@ -1,251 +1,247 @@
 import streamlit as st
 
-# ---------------------------
-# PAGE CONFIGURATION
-# ---------------------------
+# --------------------------------------------------
+# PAGE CONFIG
+# --------------------------------------------------
 st.set_page_config(
     page_title="MiniStore",
     page_icon="🛍️",
     layout="wide"
 )
 
-# ---------------------------
-# CUSTOM CSS
-# ---------------------------
+# --------------------------------------------------
+# PRODUCT DATA
+# --------------------------------------------------
+PRODUCTS = [
+    {
+        "name": "Wireless Bluetooth Headphones",
+        "price": 79.99,
+        "description": "Premium over-ear headphones with noise cancellation and 30-hour battery life.",
+        "category": "Electronics"
+    },
+    {
+        "name": "Smart Fitness Watch",
+        "price": 129.99,
+        "description": "Track heart rate, sleep, workouts, and daily activity.",
+        "category": "Electronics"
+    },
+    {
+        "name": "Leather Backpack",
+        "price": 59.99,
+        "description": "Durable backpack for work, travel and daily use.",
+        "category": "Fashion"
+    },
+    {
+        "name": "Running Shoes",
+        "price": 89.99,
+        "description": "Comfortable lightweight running shoes.",
+        "category": "Fashion"
+    },
+    {
+        "name": "Coffee Maker",
+        "price": 49.99,
+        "description": "Programmable coffee maker for home use.",
+        "category": "Home & Kitchen"
+    },
+    {
+        "name": "Portable Laptop Stand",
+        "price": 34.99,
+        "description": "Adjustable aluminum ergonomic laptop stand.",
+        "category": "Office"
+    }
+]
+
+# Make products available to chatbot page
+st.session_state["products"] = PRODUCTS
+
+# --------------------------------------------------
+# CSS
+# --------------------------------------------------
 st.markdown("""
 <style>
 
-.main {
-    background-color: #f6f8fc;
+.hero-section {
+    background: linear-gradient(135deg,#2563eb,#7c3aed);
+    padding:40px;
+    border-radius:15px;
+    text-align:center;
+    color:white;
+    margin-bottom:30px;
 }
 
-.hero {
-    padding: 35px;
-    border-radius: 20px;
-    background: linear-gradient(90deg,#1e3c72,#2a5298);
-    color: white;
-    text-align: center;
-    margin-bottom: 25px;
-}
-
-.hero h1{
-    font-size: 50px;
-}
-
-.product-card{
-    background-color:white;
-    padding:20px;
-    border-radius:18px;
-    box-shadow:0 4px 12px rgba(0,0,0,0.08);
-    margin-bottom:20px;
-    min-height:340px;
-}
-
-.product-card:hover{
-    transform: translateY(-5px);
-    transition:0.3s;
-}
-
-.price{
-    font-size:26px;
-    color:#1f77ff;
+.hero-title{
+    font-size:42px;
     font-weight:bold;
 }
 
-.category{
-    background:#eef3ff;
-    color:#3366ff;
-    padding:6px 10px;
-    border-radius:12px;
+.hero-subtitle{
+    font-size:18px;
+}
+
+.product-card{
+    background:white;
+    padding:20px;
+    border-radius:15px;
+    box-shadow:0px 4px 12px rgba(0,0,0,0.08);
+    margin-bottom:20px;
+}
+
+.product-name{
+    font-size:20px;
+    font-weight:bold;
+}
+
+.product-price{
+    color:green;
+    font-size:24px;
+    font-weight:bold;
+}
+
+.product-category{
     display:inline-block;
+    background:#e0e7ff;
+    padding:5px 12px;
+    border-radius:20px;
+    font-size:12px;
+    margin-bottom:10px;
 }
 
-.sidebar-title{
-    color:#2a5298;
+/* Floating Support Button */
+
+.support-button{
+    position:fixed;
+    bottom:25px;
+    right:25px;
+    background:#2563eb;
+    color:white;
+    padding:15px 22px;
+    border-radius:50px;
+    text-decoration:none;
+    font-weight:bold;
+    z-index:999;
+    box-shadow:0px 4px 15px rgba(0,0,0,0.3);
 }
 
-footer{
-    text-align:center;
-    color:gray;
+.support-button:hover{
+    background:#1d4ed8;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------------------
-# SAMPLE PRODUCT DATA
-# ---------------------------
-products = [
-    {
-        "name": "Wireless Headphones",
-        "price": 2999,
-        "category": "Electronics",
-        "description": "Noise-cancelling headphones with premium sound."
-    },
-
-    {
-        "name": "Smart Watch",
-        "price": 4999,
-        "category": "Electronics",
-        "description": "Track health, fitness, and notifications."
-    },
-
-    {
-        "name": "Running Shoes",
-        "price": 3499,
-        "category": "Fashion",
-        "description": "Comfortable sports shoes for daily use."
-    },
-
-    {
-        "name": "Minimal Desk Lamp",
-        "price": 1799,
-        "category": "Home",
-        "description": "Modern LED lamp with adjustable brightness."
-    },
-
-    {
-        "name": "Backpack Pro",
-        "price": 2199,
-        "category": "Accessories",
-        "description": "Water-resistant backpack for students."
-    },
-
-    {
-        "name": "Portable Speaker",
-        "price": 2599,
-        "category": "Electronics",
-        "description": "Compact Bluetooth speaker with deep bass."
-    }
-]
-
-# ---------------------------
-# SESSION STATE FOR CART
-# ---------------------------
-if "cart" not in st.session_state:
-    st.session_state.cart = []
-
-# ---------------------------
+# --------------------------------------------------
 # SIDEBAR
-# ---------------------------
+# --------------------------------------------------
 st.sidebar.title("🛒 MiniStore")
 
 categories = ["All"] + sorted(
-    list(set([p["category"] for p in products]))
+    list(set(p["category"] for p in PRODUCTS))
 )
 
-selected_category = st.sidebar.radio(
-    "Browse Categories",
+selected_category = st.sidebar.selectbox(
+    "Categories",
     categories
 )
 
-st.sidebar.markdown("---")
-
-# CART SUMMARY
-st.sidebar.subheader("Shopping Cart")
-
-cart_count = len(st.session_state.cart)
-cart_total = sum(item["price"] for item in st.session_state.cart)
-
-st.sidebar.metric("Items", cart_count)
-st.sidebar.metric("Total", f"₹{cart_total}")
-
-if st.sidebar.button("Clear Cart"):
+if "cart" not in st.session_state:
     st.session_state.cart = []
-    st.rerun()
 
-# ---------------------------
+st.sidebar.markdown("---")
+st.sidebar.subheader("Cart Summary")
+
+st.sidebar.metric(
+    "Items",
+    len(st.session_state.cart)
+)
+
+cart_total = sum(
+    item["price"]
+    for item in st.session_state.cart
+)
+
+st.sidebar.metric(
+    "Total",
+    f"${cart_total:.2f}"
+)
+
+# --------------------------------------------------
 # HERO SECTION
-# ---------------------------
+# --------------------------------------------------
 st.markdown("""
-<div class='hero'>
-<h1>🛍️ MiniStore</h1>
-<h3>Your Everyday Shopping Destination</h3>
-<p>Discover quality products at amazing prices.</p>
+<div class="hero-section">
+    <div class="hero-title">
+        🛍️ MiniStore
+    </div>
+    <div class="hero-subtitle">
+        Shop smarter with our curated collection
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
-# ---------------------------
-# WELCOME SECTION
-# ---------------------------
+# --------------------------------------------------
+# WELCOME
+# --------------------------------------------------
 st.header("Welcome to MiniStore")
 
 st.write("""
-Explore our featured collection.
-Shop electronics, fashion, accessories, and more.
+Explore electronics, fashion, office accessories,
+and home essentials all in one place.
 """)
 
-# ---------------------------
+# --------------------------------------------------
 # FILTER PRODUCTS
-# ---------------------------
+# --------------------------------------------------
 if selected_category == "All":
-    filtered = products
+    filtered_products = PRODUCTS
 else:
-    filtered = [
-        p for p in products
+    filtered_products = [
+        p for p in PRODUCTS
         if p["category"] == selected_category
     ]
 
-# ---------------------------
+# --------------------------------------------------
 # FEATURED PRODUCTS
-# ---------------------------
-st.subheader("⭐ Featured Products")
+# --------------------------------------------------
+st.subheader("Featured Products")
 
 cols = st.columns(3)
 
-for i, product in enumerate(filtered):
+for i, product in enumerate(filtered_products):
 
     with cols[i % 3]:
 
         st.markdown(f"""
         <div class="product-card">
+            <div class="product-category">
+                {product["category"]}
+            </div>
 
-        <h3>{product["name"]}</h3>
+            <div class="product-name">
+                {product["name"]}
+            </div>
 
-        <div class="category">
-        {product["category"]}
-        </div>
+            <p>{product["description"]}</p>
 
-        <br><br>
-
-        <p>{product["description"]}</p>
-
-        <div class="price">
-        ₹{product["price"]}
-        </div>
-
+            <div class="product-price">
+                ${product["price"]}
+            </div>
         </div>
         """, unsafe_allow_html=True)
 
         if st.button(
-            f"Add to Cart",
-            key=product["name"]
+            "Add to Cart",
+            key=f"cart_{i}"
         ):
             st.session_state.cart.append(product)
-            st.success(
-                f'{product["name"]} added!'
-            )
-            st.rerun()
+            st.success("Added to cart")
 
-# ---------------------------
-# CART DETAILS
-# ---------------------------
-if st.session_state.cart:
-
-    st.markdown("---")
-    st.subheader("🧾 Cart Items")
-
-    for item in st.session_state.cart:
-        st.write(
-            f"• {item['name']} — ₹{item['price']}"
-        )
-
-# ---------------------------
-# FOOTER
-# ---------------------------
+# --------------------------------------------------
+# FLOATING SUPPORT BUTTON
+# --------------------------------------------------
 st.markdown("""
-<footer>
-<hr>
-MiniStore Demo • Built with Streamlit
-</footer>
+<a class="support-button"
+href="/Support_Chatbot"
+target="_self">
+💬 Support
+</a>
 """, unsafe_allow_html=True)
